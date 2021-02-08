@@ -7,7 +7,6 @@ package ddms.opr.v1;
 
 
 import java.util.Map;
-import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import lombok.Data;
 
@@ -23,10 +22,24 @@ public interface CompleteWorkflowProcessingTask {
     public class TaskUpdCmd {
         
         @NotNull
-        private Map<String, Object> actionParams;
+        private TaskComplAction actionParams;
         
         @NotNull
         private Map<String, Object> content;
 
+    }
+    
+    @Data
+    public class TaskComplAction{
+        
+        @NotNull
+        String refId;
+        @NotNull
+        String processId;        
+        @NotNull
+        String taskId;
+        
+        private Map<String, Object> attrs;
+        
     }
 }

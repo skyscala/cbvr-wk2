@@ -30,6 +30,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import ddms.opr.v1.StartWorkflowManagementProcess;
 import ddms.opr.v1.CompleteWorkflowProcessingTask;
+import ddms.util.ReflcUtil;
 
 /**
  *
@@ -44,7 +45,7 @@ class WorkflowProcessingAdapter implements CompleteWorkflowProcessingTask,StartW
     private final String requestCompleteTask = "http://localhost:8080/engine-rest/task/%s/complete";
 
     
-    private final String WORKFLOWID="workflowId";
+    private final String REFID="refId";
     private final String PROCNAME="processName";
     private final String PROCID="processId";
     private final String TID="taskId";
@@ -68,10 +69,13 @@ class WorkflowProcessingAdapter implements CompleteWorkflowProcessingTask,StartW
     public Map<String,Object> performProcessInit(ProcessInitCmd cmd) {
 
         ValidatorUtil.validate(cmd);
+        ProcInitAction params = cmd.getActionParams();        
+        ValidatorUtil.validate(params);        
         
-        Map<String, Object> metaData = cmd.getActionParams();
+        Map<String, Object> metaData = ReflcUtil.transformToMap(ProcInitAction.class, params);
+        metaData.putAll(params.getAttrs());
         
-        String assetId=metaData.get(WORKFLOWID).toString();
+        String assetId=metaData.get(REFID).toString();
         String procName = metaData.get(PROCNAME).toString();
         
         Map<String, Object> content = cmd.getContent();
@@ -96,7 +100,10 @@ class WorkflowProcessingAdapter implements CompleteWorkflowProcessingTask,StartW
             log.info("response process started:{}",data);
             String processId=data.get("id").toString();
             Date now = DateUtil.now();
-            WorkflowEventLog assetEvt = saveAssetEvt(assetId, processId, null, metaData, content, now);
+            
+            
+            WorkflowEventLog assetEvt = saveAssetEvt(assetId, processId, null, 
+                    ReflcUtil.transformToMap(ProcInitAction.class, params), content, now);
             saveAsset(assetEvt);  
             saveProcess(procName,assetEvt);
             return fetchEvt(assetEvt);
@@ -111,11 +118,14 @@ class WorkflowProcessingAdapter implements CompleteWorkflowProcessingTask,StartW
     @Override
     public Map<String,Object> performTaskCompletion(TaskUpdCmd cmd) {
         
-        ValidatorUtil.validate(cmd);
+        ValidatorUtil.validate(cmd);        
+        TaskComplAction complParam=cmd.getActionParams();
+        ValidatorUtil.validate(complParam);
         
-        Map<String, Object> metaData = cmd.getActionParams();
+        Map<String, Object> metaData = ReflcUtil.transformToMap(TaskComplAction.class, complParam);
+        metaData.putAll(complParam.getAttrs());
         
-        String assetId = metaData.get(WORKFLOWID).toString();
+        String assetId = metaData.get(REFID).toString();
         String processId = metaData.get(PROCID).toString();        
         String taskId=metaData.get(TID).toString();
         
@@ -136,7 +146,8 @@ class WorkflowProcessingAdapter implements CompleteWorkflowProcessingTask,StartW
             Map<String,Object> data=JsonUtil.fromJsonString(response.getResponseBody(),Map.class);
             log.info("response process started:{}",data);            
             Date now = DateUtil.now();
-            WorkflowEventLog assetEvt = saveAssetEvt(assetId, processId, taskId, metaData, content, now);
+            WorkflowEventLog assetEvt = saveAssetEvt(assetId, processId, taskId, 
+                    ReflcUtil.transformToMap(TaskComplAction.class, complParam), content, now);
             saveAsset(assetEvt);  
             saveProcess(null,assetEvt);
             return fetchEvt(assetEvt);

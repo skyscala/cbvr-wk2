@@ -18,6 +18,7 @@ import org.springframework.util.ReflectionUtils;
 @Log4j2
 public class ReflcUtil {
     
+    private ReflcUtil(){}
     
     public static <T> Map<String,Object> transformToMap(Class<T> clz,T src){
         Field[] fields=clz.getDeclaredFields();

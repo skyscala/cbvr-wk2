@@ -7,7 +7,7 @@ package ddms.opr.v1;
 
 
 import java.util.Map;
-import javax.validation.constraints.NotEmpty;
+
 import javax.validation.constraints.NotNull;
 import lombok.Data;
 
@@ -25,11 +25,22 @@ public interface StartWorkflowManagementProcess {
 
        
         @NotNull
-        private Map<String, Object> actionParams;
+        private ProcInitAction actionParams;
         
         @NotNull
         private Map<String, Object> content;
         
 
+    }
+    
+    @Data
+    public class ProcInitAction{
+        
+        @NotNull
+        String refId;
+        @NotNull
+        String processName;        
+        
+        private Map<String, Object> attrs;
     }
 }
